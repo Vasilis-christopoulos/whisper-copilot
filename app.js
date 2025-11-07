@@ -1,5 +1,9 @@
 const API_URL = 'https://8abneslr0c.execute-api.us-east-1.amazonaws.com/prod/invoke';
+const OPENAI_API_KEY = prompt('Enter your OpenAI API Key:') || '';
 let sessionId = generateSessionId();
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
 
 function generateSessionId() {
     return 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
@@ -7,7 +11,6 @@ function generateSessionId() {
 
 async function searchProducts() {
     const inputText = document.getElementById('inputText').value.trim();
-    const resultsDiv = document.getElementById('results');
     const loadingDiv = document.getElementById('loading');
     const searchBtn = document.getElementById('searchBtn');
 
@@ -18,33 +21,10 @@ async function searchProducts() {
 
     // Show loading state
     loadingDiv.classList.remove('hidden');
-    resultsDiv.innerHTML = '';
     searchBtn.disabled = true;
 
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                inputText: inputText,
-                sessionId: sessionId
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        displayResults(data);
-    } catch (error) {
-        displayError(error.message);
-    } finally {
-        loadingDiv.classList.add('hidden');
-        searchBtn.disabled = false;
-    }
+    await callAgent(inputText);
+    searchBtn.disabled = false;
 }
 
 function displayResults(data) {
@@ -147,3 +127,106 @@ document.getElementById('inputText').addEventListener('keypress', function(e) {
         searchProducts();
     }
 });
+
+async function toggleRecording() {
+    const voiceBtn = document.getElementById('voiceBtn');
+    const recordingStatus = document.getElementById('recordingStatus');
+
+    if (!isRecording) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                await transcribeAudio(audioBlob);
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            voiceBtn.classList.add('recording');
+            voiceBtn.textContent = '⏹️';
+            recordingStatus.classList.remove('hidden');
+        } catch (error) {
+            alert('Microphone access denied or not available: ' + error.message);
+        }
+    } else {
+        mediaRecorder.stop();
+        isRecording = false;
+        voiceBtn.classList.remove('recording');
+        voiceBtn.textContent = '🎤';
+        recordingStatus.classList.add('hidden');
+    }
+}
+
+async function transcribeAudio(audioBlob) {
+    const loadingDiv = document.getElementById('loading');
+    loadingDiv.textContent = 'Transcribing audio...';
+    loadingDiv.classList.remove('hidden');
+
+    try {
+        const formData = new FormData();
+        formData.append('file', audioBlob, 'audio.webm');
+        formData.append('model', 'whisper-1');
+
+        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${OPENAI_API_KEY}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`Transcription failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const transcribedText = data.text;
+        document.getElementById('inputText').value = transcribedText;
+        
+        // Automatically call the agent with transcribed text
+        loadingDiv.textContent = 'Searching...';
+        await callAgent(transcribedText);
+    } catch (error) {
+        loadingDiv.classList.add('hidden');
+        alert('Transcription error: ' + error.message);
+    }
+}
+
+async function callAgent(inputText) {
+    const resultsDiv = document.getElementById('results');
+    const loadingDiv = document.getElementById('loading');
+
+    resultsDiv.innerHTML = '';
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                inputText: inputText,
+                sessionId: sessionId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        displayResults(data);
+    } catch (error) {
+        displayError(error.message);
+    } finally {
+        loadingDiv.classList.add('hidden');
+    }
+}

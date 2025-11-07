@@ -17,8 +17,11 @@
                 placeholder="e.g., let's take a look at black boots of size 9"
                 aria-label="Search query"
             >
+            <button id="voiceBtn" onclick="toggleRecording()" aria-label="Voice input">🎤</button>
             <button id="searchBtn" onclick="searchProducts()">Search</button>
         </div>
+        
+        <div id="recordingStatus" class="recording-status hidden">Recording...</div>
 
         <div id="loading" class="loading hidden">Searching...</div>
         
