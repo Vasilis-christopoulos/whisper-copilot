@@ -169,6 +169,37 @@ button:disabled {
     border-top: 1px solid #e0e0e0;
 }
 
+.product-display {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.product-image-container {
+    flex: 0 0 auto;
+    text-align: center;
+}
+
+.product-image {
+    max-width: 300px;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-code-label {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+}
+
+.product-info {
+    flex: 1;
+    min-width: 250px;
+}
+
 .collapsible-section {
     margin: 12px 0;
 }
@@ -200,4 +231,41 @@ button:disabled {
 .info-content p {
     margin: 0;
     color: #333;
+}
+
+.mode-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.mode-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.mode-btn {
+    padding: 10px 24px;
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.mode-btn:hover {
+    background: #f0f0ff;
+}
+
+.mode-btn.active {
+    background: #667eea;
+    color: white;
 }

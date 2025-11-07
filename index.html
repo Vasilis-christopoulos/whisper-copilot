@@ -10,6 +10,13 @@
     <div class="container">
         <h1>Product Recommendation Search</h1>
         
+        <div class="mode-selector">
+            <label class="mode-label">Mode:</label>
+            <button class="mode-btn" data-mode="onboarding" onclick="selectMode('onboarding')">Onboarding</button>
+            <button class="mode-btn active" data-mode="apprentice" onclick="selectMode('apprentice')">Apprentice</button>
+            <button class="mode-btn" data-mode="master" onclick="selectMode('master')">Master</button>
+        </div>
+        
         <div class="search-section">
             <input 
                 type="text" 

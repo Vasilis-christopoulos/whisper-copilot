@@ -3,9 +3,17 @@ let sessionId = generateSessionId();
 let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
+let currentMode = 'apprentice';
 
 function generateSessionId() {
     return 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
+
+function getImagePath(articleId) {
+    // Image filenames have leading zero (e.g., 0672357001.jpg)
+    // API returns article IDs without leading zero (e.g., 672357001)
+    const paddedId = articleId.toString().padStart(10, '0');
+    return `grouped_images/${paddedId}.jpg`;
 }
 
 async function searchProducts() {
@@ -73,41 +81,49 @@ function displayResults(data) {
         html += `
             <div class="product-card">
                 <h3>Top Recommendation</h3>
-                <div class="product-info">
-                    <p><strong>Product Code:</strong> ${productCode}</p>
-                    
-                    ${detailsText ? `<p><strong>Details:</strong> ${detailsText}</p>` : ''}
-                    
-                    ${product.tip2 && typeof product.tip2 === 'object' ? `
-                        <p><strong>Material:</strong> ${product.tip2.material}</p>
-                        <p><strong>Season:</strong> ${product.tip2.season}</p>
-                        <p><strong>Collection:</strong> ${product.tip2.collection}</p>
-                    ` : ''}
-                    
-                    <div class="collapsible-section">
-                        <button class="info-btn" onclick="toggleInfo('${productId}-discount')">Discount</button>
-                        <div id="${productId}-discount" class="info-content hidden">
-                            <p>${discount}%</p>
-                        </div>
+                <div class="product-display">
+                    <div class="product-image-container">
+                        <img src="${getImagePath(productCode)}" 
+                             alt="Product ${productCode}" 
+                             class="product-image"
+                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect fill=%22%23ddd%22 width=%22300%22 height=%22300%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E';">
+                        <p class="product-code-label">Product Code: ${productCode}</p>
                     </div>
                     
-                    <div class="collapsible-section">
-                        <button class="info-btn" onclick="toggleInfo('${productId}-fit')">Fit</button>
-                        <div id="${productId}-fit" class="info-content hidden">
-                            <p>${fitNotes}</p>
-                        </div>
-                    </div>
-                    
-                    ${product.style_names && product.style_names.length > 0 ? `
+                    <div class="product-info">
+                        ${detailsText ? `<p><strong>Details:</strong> ${detailsText}</p>` : ''}
+                        
+                        ${product.tip2 && typeof product.tip2 === 'object' ? `
+                            <p><strong>Material:</strong> ${product.tip2.material}</p>
+                            <p><strong>Season:</strong> ${product.tip2.season}</p>
+                            <p><strong>Collection:</strong> ${product.tip2.collection}</p>
+                        ` : ''}
+                        
                         <div class="collapsible-section">
-                            <button class="info-btn" onclick="toggleInfo('${productId}-styles')">Styles</button>
-                            <div id="${productId}-styles" class="info-content hidden">
-                                <div class="styles-list">
-                                    ${product.style_names.map(style => `<span class="style-tag">${style}</span>`).join('')}
-                                </div>
+                            <button class="info-btn" onclick="toggleInfo('${productId}-discount')">Discount</button>
+                            <div id="${productId}-discount" class="info-content hidden">
+                                <p>${discount}%</p>
                             </div>
                         </div>
-                    ` : ''}
+                        
+                        <div class="collapsible-section">
+                            <button class="info-btn" onclick="toggleInfo('${productId}-fit')">Fit</button>
+                            <div id="${productId}-fit" class="info-content hidden">
+                                <p>${fitNotes}</p>
+                            </div>
+                        </div>
+                        
+                        ${product.style_names && product.style_names.length > 0 ? `
+                            <div class="collapsible-section">
+                                <button class="info-btn" onclick="toggleInfo('${productId}-styles')">Styles</button>
+                                <div id="${productId}-styles" class="info-content hidden">
+                                    <div class="styles-list">
+                                        ${product.style_names.map(style => `<span class="style-tag">${style}</span>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
             </div>
         `;
@@ -118,8 +134,14 @@ function displayResults(data) {
         html += `
             <div class="product-card">
                 <h3>Alternative Option</h3>
-                <div class="product-info">
-                    <p><strong>Product Code:</strong> ${parsedResponse.product_recommended_2}</p>
+                <div class="product-display">
+                    <div class="product-image-container">
+                        <img src="${getImagePath(parsedResponse.product_recommended_2)}" 
+                             alt="Product ${parsedResponse.product_recommended_2}" 
+                             class="product-image"
+                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect fill=%22%23ddd%22 width=%22300%22 height=%22300%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E';">
+                        <p class="product-code-label">Product Code: ${parsedResponse.product_recommended_2}</p>
+                    </div>
                 </div>
             </div>
         `;
@@ -129,8 +151,14 @@ function displayResults(data) {
         html += `
             <div class="product-card">
                 <h3>Another Option</h3>
-                <div class="product-info">
-                    <p><strong>Product Code:</strong> ${parsedResponse.product_recommended_3}</p>
+                <div class="product-display">
+                    <div class="product-image-container">
+                        <img src="${getImagePath(parsedResponse.product_recommended_3)}" 
+                             alt="Product ${parsedResponse.product_recommended_3}" 
+                             class="product-image"
+                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect fill=%22%23ddd%22 width=%22300%22 height=%22300%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E';">
+                        <p class="product-code-label">Product Code: ${parsedResponse.product_recommended_3}</p>
+                    </div>
                 </div>
             </div>
         `;
@@ -331,4 +359,20 @@ function toggleInfo(elementId) {
         const textContent = element.textContent.trim();
         speakText(textContent);
     }
+}
+
+function selectMode(mode) {
+    currentMode = mode;
+    
+    // Update button states
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+    
+    console.log(`Mode selected: ${mode}`);
+    
+    // Speak the intro message when mode is selected
+    const introMessage = "For the sake of the demo, I'll keep the intro short for today. Greet warmly, ask what they need, scan products for stock and talking points. Use page buttons for common questions. Offer to hold unavailable sizes. The category of the day is boots!";
+    speakText(introMessage);
 }
