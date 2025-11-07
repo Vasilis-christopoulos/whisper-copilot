@@ -246,7 +246,53 @@ async function callAgent(inputText) {
     }
 }
 
+// Initialize AWS Polly
+let polly;
+function initPolly() {
+    if (!polly) {
+        AWS.config.update({
+            accessKeyId: AWS_ACCESS_KEY_ID,
+            secretAccessKey: AWS_SECRET_ACCESS_KEY,
+            region: AWS_REGION
+        });
+        polly = new AWS.Polly();
+    }
+}
+
+async function speakText(text) {
+    initPolly();
+    
+    try {
+        const params = {
+            Text: text,
+            OutputFormat: 'mp3',
+            VoiceId: 'Joanna',
+            Engine: 'neural'
+        };
+
+        const data = await polly.synthesizeSpeech(params).promise();
+        
+        if (data.AudioStream) {
+            const blob = new Blob([data.AudioStream], { type: 'audio/mpeg' });
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            audio.play();
+        }
+    } catch (error) {
+        console.error('Polly error:', error);
+        alert('Speech synthesis error: ' + error.message);
+    }
+}
+
 function toggleInfo(elementId) {
     const element = document.getElementById(elementId);
+    const isHidden = element.classList.contains('hidden');
+    
     element.classList.toggle('hidden');
+    
+    // If showing the content, speak it
+    if (isHidden) {
+        const textContent = element.textContent.trim();
+        speakText(textContent);
+    }
 }
