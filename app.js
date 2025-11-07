@@ -49,12 +49,7 @@ function displayResults(data) {
         parsedResponse = data.response;
     }
 
-    let html = `
-        <div class="product-card">
-            <h3>API Response</h3>
-            <pre style="background: #f5f5f5; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 13px;">${JSON.stringify(data, null, 2)}</pre>
-        </div>
-    `;
+    let html = '';
 
     // Display main product recommendation
     if (parsedResponse.product_recommended_1) {
@@ -113,13 +108,15 @@ function displayResults(data) {
                             </div>
                         </div>
                         
-                        ${product.style_names && product.style_names.length > 0 ? `
+                        ${product.style_names ? `
                             <div class="collapsible-section">
                                 <button class="info-btn" onclick="toggleInfo('${productId}-styles')">Styles</button>
                                 <div id="${productId}-styles" class="info-content hidden">
-                                    <div class="styles-list">
-                                        ${product.style_names.map(style => `<span class="style-tag">${style}</span>`).join('')}
-                                    </div>
+                                    ${Array.isArray(product.style_names) ? `
+                                        <div class="styles-list">
+                                            ${product.style_names.map(style => `<span class="style-tag">${style}</span>`).join('')}
+                                        </div>
+                                    ` : `<p>${product.style_names}</p>`}
                                 </div>
                             </div>
                         ` : ''}
@@ -131,34 +128,100 @@ function displayResults(data) {
 
     // Display additional recommendations
     if (parsedResponse.product_recommended_2) {
+        const product2 = parsedResponse.product_recommended_2;
+        // Handle both formats: object (new) or string (old)
+        const isObject2 = typeof product2 === 'object';
+        const productCode2 = isObject2 ? product2.article_id : product2;
+        
         html += `
             <div class="product-card">
                 <h3>Alternative Option</h3>
                 <div class="product-display">
                     <div class="product-image-container">
-                        <img src="${getImagePath(parsedResponse.product_recommended_2)}" 
-                             alt="Product ${parsedResponse.product_recommended_2}" 
+                        <img src="${getImagePath(productCode2)}" 
+                             alt="Product ${productCode2}" 
                              class="product-image"
                              onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect fill=%22%23ddd%22 width=%22300%22 height=%22300%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E';">
-                        <p class="product-code-label">Product Code: ${parsedResponse.product_recommended_2}</p>
+                        <p class="product-code-label">Product Code: ${productCode2}</p>
                     </div>
+                    ${isObject2 ? `
+                        <div class="product-info">
+                            ${product2.tip2 ? `<p><strong>Details:</strong> ${product2.tip2}</p>` : ''}
+                            
+                            <div class="collapsible-section">
+                                <button class="info-btn" onclick="toggleInfo('product-2-discount')">Discount</button>
+                                <div id="product-2-discount" class="info-content hidden">
+                                    <p>${product2.discount}%</p>
+                                </div>
+                            </div>
+                            
+                            <div class="collapsible-section">
+                                <button class="info-btn" onclick="toggleInfo('product-2-fit')">Fit</button>
+                                <div id="product-2-fit" class="info-content hidden">
+                                    <p>${product2.fit_notes}</p>
+                                </div>
+                            </div>
+                            
+                            ${product2.style_names ? `
+                                <div class="collapsible-section">
+                                    <button class="info-btn" onclick="toggleInfo('product-2-styles')">Styles</button>
+                                    <div id="product-2-styles" class="info-content hidden">
+                                        <p>${product2.style_names}</p>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
     }
 
     if (parsedResponse.product_recommended_3) {
+        const product3 = parsedResponse.product_recommended_3;
+        // Handle both formats: object (new) or string (old)
+        const isObject3 = typeof product3 === 'object';
+        const productCode3 = isObject3 ? product3.article_id : product3;
+        
         html += `
             <div class="product-card">
                 <h3>Another Option</h3>
                 <div class="product-display">
                     <div class="product-image-container">
-                        <img src="${getImagePath(parsedResponse.product_recommended_3)}" 
-                             alt="Product ${parsedResponse.product_recommended_3}" 
+                        <img src="${getImagePath(productCode3)}" 
+                             alt="Product ${productCode3}" 
                              class="product-image"
                              onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22%3E%3Crect fill=%22%23ddd%22 width=%22300%22 height=%22300%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3ENo Image%3C/text%3E%3C/svg%3E';">
-                        <p class="product-code-label">Product Code: ${parsedResponse.product_recommended_3}</p>
+                        <p class="product-code-label">Product Code: ${productCode3}</p>
                     </div>
+                    ${isObject3 ? `
+                        <div class="product-info">
+                            ${product3.tip2 ? `<p><strong>Details:</strong> ${product3.tip2}</p>` : ''}
+                            
+                            <div class="collapsible-section">
+                                <button class="info-btn" onclick="toggleInfo('product-3-discount')">Discount</button>
+                                <div id="product-3-discount" class="info-content hidden">
+                                    <p>${product3.discount}%</p>
+                                </div>
+                            </div>
+                            
+                            <div class="collapsible-section">
+                                <button class="info-btn" onclick="toggleInfo('product-3-fit')">Fit</button>
+                                <div id="product-3-fit" class="info-content hidden">
+                                    <p>${product3.fit_notes}</p>
+                                </div>
+                            </div>
+                            
+                            ${product3.style_names ? `
+                                <div class="collapsible-section">
+                                    <button class="info-btn" onclick="toggleInfo('product-3-styles')">Styles</button>
+                                    <div id="product-3-styles" class="info-content hidden">
+                                        <p>${product3.style_names}</p>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
