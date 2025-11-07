@@ -52,29 +52,49 @@ function displayResults(data) {
     if (parsedResponse.product_recommended_1) {
         const product = parsedResponse.product_recommended_1;
         const productId = 'product-1';
+        
+        // Handle both old and new formats
+        const productCode = product.article_id || product.product_code;
+        const fitNotes = product.fit_notes || product.fit_notes;
+        const discount = product.discount;
+        
+        // Handle tip2 - can be string (new format) or object (old format)
+        let detailsText = '';
+        if (product.tip2) {
+            if (typeof product.tip2 === 'string') {
+                // New format: tip2 is a string
+                detailsText = product.tip2;
+            } else if (typeof product.tip2 === 'object') {
+                // Old format: tip2 is an object
+                detailsText = product.tip2.product_specific_recommendation || '';
+            }
+        }
+        
         html += `
             <div class="product-card">
                 <h3>Top Recommendation</h3>
                 <div class="product-info">
-                    <p><strong>Product Code:</strong> ${product.product_code}</p>
-                    ${product.tip2 ? `
+                    <p><strong>Product Code:</strong> ${productCode}</p>
+                    
+                    ${detailsText ? `<p><strong>Details:</strong> ${detailsText}</p>` : ''}
+                    
+                    ${product.tip2 && typeof product.tip2 === 'object' ? `
                         <p><strong>Material:</strong> ${product.tip2.material}</p>
                         <p><strong>Season:</strong> ${product.tip2.season}</p>
                         <p><strong>Collection:</strong> ${product.tip2.collection}</p>
-                        <p><strong>Details:</strong> ${product.tip2.product_specific_recommendation}</p>
                     ` : ''}
                     
                     <div class="collapsible-section">
                         <button class="info-btn" onclick="toggleInfo('${productId}-discount')">Discount</button>
                         <div id="${productId}-discount" class="info-content hidden">
-                            <p>${product.discount}%</p>
+                            <p>${discount}%</p>
                         </div>
                     </div>
                     
                     <div class="collapsible-section">
                         <button class="info-btn" onclick="toggleInfo('${productId}-fit')">Fit</button>
                         <div id="${productId}-fit" class="info-content hidden">
-                            <p>${product.fit_notes}</p>
+                            <p>${fitNotes}</p>
                         </div>
                     </div>
                     
@@ -124,6 +144,22 @@ function displayResults(data) {
     `;
 
     resultsDiv.innerHTML = html;
+    
+    // Automatically speak the details field if it exists
+    if (parsedResponse.product_recommended_1 && parsedResponse.product_recommended_1.tip2) {
+        let details = '';
+        if (typeof parsedResponse.product_recommended_1.tip2 === 'string') {
+            // New format: tip2 is a string
+            details = parsedResponse.product_recommended_1.tip2;
+        } else if (typeof parsedResponse.product_recommended_1.tip2 === 'object') {
+            // Old format: tip2 is an object
+            details = parsedResponse.product_recommended_1.tip2.product_specific_recommendation;
+        }
+        
+        if (details) {
+            speakText(details);
+        }
+    }
 }
 
 function displayError(message) {
