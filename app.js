@@ -373,11 +373,13 @@ async function speakText(text, whisper = false) {
     try {
         let textToSpeak = text;
         let textType = 'text';
+        let engine = 'neural';
         
-        // Use SSML for whispering
+        // Use SSML for whispering with standard engine (neural doesn't support whisper)
         if (whisper) {
             textToSpeak = `<speak><amazon:effect name="whispered">${text}</amazon:effect></speak>`;
             textType = 'ssml';
+            engine = 'standard';
         }
         
         const params = {
@@ -385,7 +387,7 @@ async function speakText(text, whisper = false) {
             TextType: textType,
             OutputFormat: 'mp3',
             VoiceId: 'Joanna',
-            Engine: 'neural'
+            Engine: engine
         };
 
         const data = await polly.synthesizeSpeech(params).promise();
@@ -404,10 +406,20 @@ async function speakText(text, whisper = false) {
 
 function toggleInfo(elementId) {
     const element = document.getElementById(elementId);
+    if (!element) {
+        console.error('Element not found:', elementId);
+        return;
+    }
+    
     const textContent = element.textContent.trim();
+    console.log('Speaking:', textContent);
     
     // Just speak the content in whisper, don't toggle visibility
-    speakText(textContent, true);
+    if (textContent) {
+        speakText(textContent, true);
+    } else {
+        console.error('No text content found for:', elementId);
+    }
 }
 
 function selectMode(mode) {
