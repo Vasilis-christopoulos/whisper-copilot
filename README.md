@@ -1,3 +1,4 @@
+![Header Banner](banner-aldo.jpeg)
 # ALDO Whisper - AI-Powered Retail Assistant
 ## Hackathon Context
 
