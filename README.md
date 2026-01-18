@@ -9,6 +9,10 @@ This project was developed for the **ALDO x AWS Retail GenAI Hackathon**, demons
 
 ALDO Whisper is an intelligent retail assistant designed to help ALDO store employees provide personalized product recommendations to customers, but also provide tips for selling and aligning with business needs, customized to employees level of experience. The system uses voice input, natural language processing, and AI-powered product matching to deliver contextual suggestions with detailed product information. It also utilizes a knowledge base to customize its answers per employee level and get guidelines of reasoning.
 
+## Presentation
+
+You can view a the full presentation here: [Presentation](https://prezi.com/view/mLQTayEuu8qdUC8ps3ef/?referral_token=nje3U6lnB3FN)
+
 ## Demo
 
 Video: https://youtu.be/l5zIQtTFpz4
